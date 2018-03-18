@@ -1,0 +1,178 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" 
+   crossorigin="anonymous">
+    <title>Train Schedule</title>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>
+                TRAIN TIME SCHEDULE
+            </h1>
+            <div id="currentTime"></div>
+        </div>
+
+    <!-- train  schedule goes here --> 
+        <div class="row">
+            <div class="col-12" class="rounded" id="scheduleBorder" >
+                <table class="table table-hover table-dark" id="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Train Name</th>
+                        <th scope="col">Destination</th>
+                        <th scope="col">Frequency (min)</th>
+                        <th scope="col">Next Arrival</th>
+                        <th scope="col">Minutes Away</th>
+                      </tr>
+                    </thead>
+
+      
+                    <tbody>
+                      
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    <!-- Schedule inputer goes here  --> 
+        <div class="row">
+            <div class="col-12"   class="rounded" id="scheduleBorder" >
+
+                <p>Train Name</p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="trainName" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default">
+                    </div>
+
+                <p>Destination</p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="trainDestination" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default">
+                    </div>
+
+                <p>First Train Time (00:00) </p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="trainFirst" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default">
+                    </div>
+
+                <p>Frequency</p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="trainFrequency" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default">
+                    </div>
+
+                <button type="button" class="btn btn-secondary" id="add-train-schedule" >Discover</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://www.gstatic.com/firebasejs/4.11.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  <script>// Initialize Firebase
+		
+        var database= firebase.database();
+        
+        
+        $(document).ready(function(){
+        
+        
+        // gives current time 
+        var currentTime = moment().format("HH:mm");
+        
+        
+        // button for adding trains 
+        $(document).on("click", "button", function(event){
+            event.preventDefault();
+        
+            // Gathers Data 
+            var trainName = $("#trainName").val().trim();
+            var trainDestination = $("#trainDestination").val().trim();    
+            var trainFirst = $("#trainFirst").val().trim();
+            var trainFrequency = $("#trainFrequency").val().trim();
+        
+          
+        
+            // Creates local "temporary" object for holding data
+            var newTrain = {
+                name: trainName,
+                destination: trainDestination,
+                first: trainFirst,
+                frequency: trainFrequency,
+            };
+        
+            //uploads employee Data to the Database
+            database.ref().push(newTrain);
+        
+        
+            console.log(newTrain.name);
+            console.log(newTrain.destination);
+            console.log(newTrain.first);
+            console.log(newTrain.frequency);
+        
+            // Alert
+            //alert("This stuff working");
+        
+        $("#trainName").val("");
+        $("#trainDestination").val("");
+        $("#trainFirst").val("");
+        $("#trainFrequency").val("");
+        
+        // End of button that adds Data
+        });
+        
+        
+        database.ref().on("child_added", function(childSnapshot, prevChildKey){
+            console.log(childSnapshot.val()); 
+        
+            // Name of the Train
+            var trainName = childSnapshot.val().name;
+            
+            // Destination of the Train
+            var trainDestination = childSnapshot.val().destination;
+        
+            // When the Train starts running
+            var trainFirst = childSnapshot.val().first;
+        
+            // How often the train shows up
+            var trainFrequency = childSnapshot.val().frequency;
+        
+        
+        
+            //attaches current time to the Header
+            $("#currentTime").text("Current time " + currentTime);
+        
+            var trainFrequencies = moment(trainFrequency, "minutes").format( "HH:mm");
+        
+            // I need to make the trains time
+            var diffTime = moment(trainFirst, "minutes").format("HH:mm");
+            
+        
+            // Time apart (remainder)
+            var tRemained = trainFrequency % diffTime;
+        
+            console.log(diffTime);
+            console.log(trainFrequencies);
+            console.log(tRemained);
+        
+            //currently tremained is only coming up as 0
+        
+            // minutes until train
+            var tMinutesTillTrain = trainFrequency - tRemained;
+            //console.log(tMinutesTillTrain);
+            
+            var nextTrain = moment().add(tMinutesTillTrain, "minutes" ).format( "HH:mm");
+        
+        
+            // Throwing that Schedule up on that Scheduler thing
+            $("#Table > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDestination + "</td><td>" + trainFrequencies + "</td><td>" + nextTrain + "</td><td>" + tMinutesTillTrain + "</td><td>" );
+            
+        // End  of firebase event
+        });
+        
+        
+        // End of document.ready
+        });</script>
+</script>
+</html>
